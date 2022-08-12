@@ -61,7 +61,7 @@ const int LED_DRIVER_ADDRESS = 1;
 int Steps_up_route[] = {1000,1050,600};
 int Leds_up_route[] = {0x00, 0x01, 0x02};
 
-int Steps_down_route[] = {600,500,500};
+int Steps_down_route[] = {600,1500,700};
 int Leds_down_route[] = {0x11, 0x12, 0x13};
 
 unsigned long Up_route_start_stop = 0;
@@ -130,13 +130,13 @@ void loop()
       Serial.println(" has been arrived. War starts :) ");
 
       /* I2C TRansmission */
-      byte cityArriveByte;
+      /*byte cityArriveByte;
       cityArriveByte = static_cast<byte>(upCityArrivedId);
       Serial.print("CITY ID BYTE --> ");
       Serial.println(cityArriveByte);
       Wire.beginTransmission(LED_DRIVER_ADDRESS);
       Wire.write(cityArriveByte);
-      Wire.endTransmission();
+      Wire.endTransmission();*/
       /*EOT */
       
       Up_route_start_stop = millis();
