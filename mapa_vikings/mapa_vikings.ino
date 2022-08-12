@@ -59,7 +59,7 @@ const int MOTOR_Y_DIRECTION_PIN = 23;
 const int LED_DRIVER_ADDRESS = 1;
 
 int Steps_up_route[] = {1000,1050,600};
-int Leds_up_route[] = {0x01, 0x02, 0x03};
+int Leds_up_route[] = {0x00, 0x01, 0x02};
 
 int Steps_down_route[] = {600,500,500};
 int Leds_down_route[] = {0x11, 0x12, 0x13};
@@ -88,12 +88,10 @@ bool downWayRecentChanged = true;
 SpeedyStepper stepperX;
 SpeedyStepper stepperY;
 
-byte spi_message;
-
 void setup() 
 {
   // Serial debugging
-  Serial.begin(9600);
+  Serial.begin(115200);
   
   // Init I2C
   Wire.begin();
@@ -122,10 +120,6 @@ void loop()
     {
       Serial.println("---- Upper route to start ---- ");
       upWayRecentChanged = false;
-      /*Wire.beginTransmission(LED_DRIVER_ADDRESS);
-      Wire.write(0x01);
-      Wire.endTransmission();
-      */
     }
 
     if (upCityArrived)
@@ -134,6 +128,17 @@ void loop()
       Serial.print("[UpRoute] City with id ");
       Serial.print(upCityArrivedId);
       Serial.println(" has been arrived. War starts :) ");
+
+      /* I2C TRansmission */
+      byte cityArriveByte;
+      cityArriveByte = static_cast<byte>(upCityArrivedId);
+      Serial.print("CITY ID BYTE --> ");
+      Serial.println(cityArriveByte);
+      Wire.beginTransmission(LED_DRIVER_ADDRESS);
+      Wire.write(cityArriveByte);
+      Wire.endTransmission();
+      /*EOT */
+      
       Up_route_start_stop = millis();
 
       //Leds to be shown by using Leds_up_route
@@ -153,9 +158,6 @@ void loop()
     {
       Stepper_x_total_movement = 0;
       upWayRecentChanged = true;
-      /*Wire.beginTransmission(LED_DRIVER_ADDRESS);
-      Wire.write(0x02);
-      Wire.endTransmission();*/
     }
   }
   else
@@ -257,8 +259,8 @@ void loop()
     Serial.println(yStepperLoopMovement);
   }
   
-  //moveStepper(&stepperX, xStepperLoopMovement, &stepperY, yStepperLoopMovement);
-  moveStepper(&stepperX, xStepperLoopMovement, NULL, 0);
+  moveStepper(&stepperX, xStepperLoopMovement, &stepperY, yStepperLoopMovement);
+  //moveStepper(&stepperX, xStepperLoopMovement, NULL, 0);
 }
 
 bool getNeededSteps (int totalMovement, int maxStepsPerRound, int arrayOfMovements[], int numberStopsUpRoute, int & stepsToExecute, bool & cityArrived, int & cityId)
