@@ -59,10 +59,10 @@ const int MOTOR_Y_DIRECTION_PIN = 23;
 const int LED_DRIVER_ADDRESS = 1;
 
 int Steps_up_route[] = {1000,1050,600};
-int Leds_up_route[] = {0x00, 0x01, 0x02};
+int Leds_up_route[] = {0x00, 0x01, 0x02, 0x03};
 
 int Steps_down_route[] = {600,1500,700};
-int Leds_down_route[] = {0x11, 0x12, 0x13};
+int Leds_down_route[] = {0x11, 0x12, 0x13, 0x14};
 
 unsigned long Up_route_start_stop = 0;
 unsigned long Down_route_start_stop = 0;
@@ -125,6 +125,9 @@ void loop()
     {
       Serial.println("---- Upper route to start ---- ");
       upWayRecentChanged = false;
+      Wire.beginTransmission(LED_DRIVER_ADDRESS);
+      Wire.write(Leds_up_route[0]);
+      Wire.endTransmission();
     }
 
     if (upCityArrived)
@@ -135,14 +138,11 @@ void loop()
       Serial.println(" has been arrived. War starts :) ");
 
       /* I2C TRansmission */
-      /*byte cityArriveByte;
-      cityArriveByte = static_cast<byte>(upCityArrivedId);
       Serial.print("CITY ID BYTE --> ");
-      Serial.println(cityArriveByte);
+      Serial.println(Leds_up_route[upCityArrivedId]);
       Wire.beginTransmission(LED_DRIVER_ADDRESS);
-      Wire.write(cityArriveByte);
-      Wire.endTransmission();*/
-      /*EOT */
+      Wire.write(Leds_up_route[upCityArrivedId]);
+      Wire.endTransmission();
       
       Up_route_start_stop = millis();
 
@@ -195,9 +195,9 @@ void loop()
     {
       Serial.println("---- Down route to start ---- ");
       downWayRecentChanged = false;
-      /*Wire.beginTransmission(LED_DRIVER_ADDRESS);
-      Wire.write(0x03);
-      Wire.endTransmission();*/
+      Wire.beginTransmission(LED_DRIVER_ADDRESS);
+      Wire.write(Leds_down_route[0]);
+      Wire.endTransmission();
     }
 
     if (downCityArrived)
@@ -206,6 +206,14 @@ void loop()
       Serial.print("[DownRoute] City with id ");
       Serial.print(downCityArrivedId);
       Serial.println(" has been arrived. War starts :) ");
+
+      /* I2C TRansmission */
+      Serial.print("CITY ID BYTE --> ");
+      Serial.println(Leds_down_route[downCityArriveId]);
+      Wire.beginTransmission(LED_DRIVER_ADDRESS);
+      Wire.write(Leds_down_route[downCityArriveId]);
+      Wire.endTransmission();
+      
       Down_route_start_stop = millis();
 
       //Leds to be shown by using Leds_down_route
@@ -225,9 +233,6 @@ void loop()
     {
       Stepper_y_total_movement = 0;
       downWayRecentChanged = true;
-      /*Wire.beginTransmission(LED_DRIVER_ADDRESS);
-      Wire.write(0x04);
-      Wire.endTransmission();*/
     }
   }
   else
