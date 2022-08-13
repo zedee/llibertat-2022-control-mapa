@@ -82,6 +82,11 @@ bool downRouteEnded = false;
 bool upWayRecentChanged = true;
 bool downWayRecentChanged = true;
 
+bool homing_enabled = true;
+int number_of_loops_until_homing = 10;
+int x_number_of_loops_without_homing = 0;
+int y_number_of_loops_without_homing = 0;
+
 //
 // create two stepper motor objects, one for each motor
 //
@@ -180,6 +185,7 @@ void loop()
       Stepper_x_total_movement = 0;
       upWayRecentChanged = true;
       upRouteEnded = false;
+      ++x_number_of_loops_without_homing;
     }
   }
 
@@ -244,6 +250,7 @@ void loop()
       Stepper_y_total_movement = 0;
       downWayRecentChanged = true;
       downRouteEnded = false;
+      ++y_number_of_loops_without_homing;
     }
   }
 
@@ -261,6 +268,27 @@ void loop()
   
   moveStepper(&stepperX, xStepperLoopMovement, &stepperY, yStepperLoopMovement);
   //moveStepper(&stepperX, xStepperLoopMovement, NULL, 0);
+
+  if (homing_enabled)
+  {
+    int x_steps_to_home = 0;
+    int y_steps_to_home = 0;
+
+    if (x_number_of_loops_without_homing == number_of_loops_until_homing)
+    {
+      x_number_of_loops_without_homing = 0;
+      x_steps_to_home = 50;
+    }
+    
+    if (y_number_of_loops_without_homing == number_of_loops_until_homing)
+    {
+      y_number_of_loops_without_homing = 0;
+      y_steps_to_home = 50;
+    }
+
+    moveStepper(&stepperX, xStepperLoopMovement, &stepperY, yStepperLoopMovement, 20);
+  }
+  
 }
 
 bool getNeededSteps (int totalMovement, int maxStepsPerRound, int arrayOfMovements[], int numberStopsUpRoute, int & stepsToExecute, bool & cityArrived, int & cityId)
@@ -339,13 +367,18 @@ int getTotalStepsOfRoute (int arrayOfMovements[], int numberStopsUpRoute)
 
 void moveStepper (SpeedyStepper * stepper1, int stepsToMove1, SpeedyStepper * stepper2, int stepsToMove2)
 {
+  return moveStepper(stepper1, stepsToMove1, stepper2, stepsToMove2, 50);
+}
+
+void moveStepper (SpeedyStepper * stepper1, int stepsToMove1, SpeedyStepper * stepper2, int stepsToMove2, int stepsPerSecond)
+{
   //
   // setup the speed, acceleration and number of steps to move for the 
   // X motor, note: these commands do not start moving yet
   //
   if (stepper1)
   {
-    stepper1->setSpeedInStepsPerSecond(50 * 16);
+    stepper1->setSpeedInStepsPerSecond(stepsPerSecond * 16);
     stepper1->setAccelerationInStepsPerSecondPerSecond(600 * 16);
     stepper1->setupRelativeMoveInSteps(stepsToMove1 * 16);
   }
