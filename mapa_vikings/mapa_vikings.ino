@@ -58,14 +58,17 @@ const int MOTOR_Y_DIRECTION_PIN = 23;
   
 const int LED_DRIVER_ADDRESS = 1;
 
-int Steps_up_route[] = {1000,1050,600};
+int Steps_up_route[] = {1000, 1000, 650};
+//int Steps_up_route[] = {100, 100, 100};
 int Leds_up_route[] = {1, 2, 3};
 
-int Steps_down_route[] = {600,1500,650};
+int Steps_down_route[] = {600, 1450, 650};
+//int Steps_down_route[] = {100, 100, 100};
 int Leds_down_route[] = {4, 5, 6};
 
-byte ledsNorthCommandShutdown = 0x0;
-byte ledsSouthCommandShutdown = 0x7;
+int ledsTurnOffAllCommand = 0;
+int ledsResetNorthRouteCommand = 14;
+int ledsResetSouthRouteCommand = 15;
 
 unsigned long Up_route_start_stop = 0;
 unsigned long Down_route_start_stop = 0;
@@ -145,15 +148,13 @@ void loop()
       Wire.endTransmission();
       
       Up_route_start_stop = millis();
-
-      //Leds to be shown by using Leds_up_route
     }
     
     if (millis() - Up_route_start_stop > Number_of_millis_to_stop)
     {
+      //Serial.println("Calculating getNeededSteps!!");
       Up_route_start_stop = 0;
       int numberStopsUpRoute = sizeof(Steps_up_route)/sizeof(Steps_up_route[0]);
-      
       upRouteEnded = getNeededSteps(Stepper_x_total_movement, Stepper_movement_per_round, Steps_up_route, numberStopsUpRoute, xStepperLoopMovement, upCityArrived, upCityArrivedId);
     }
     
@@ -185,15 +186,16 @@ void loop()
       Stepper_x_total_movement = 0;
       upWayRecentChanged = true;
       upRouteEnded = false;
+      upCityArrivedId = 0;
       ++x_number_of_loops_without_homing;
 
       //Turn off north route leds      
       Wire.beginTransmission(LED_DRIVER_ADDRESS);
-      Wire.write(ledsNorthCommandShutdown);
+      Wire.write(ledsResetNorthRouteCommand);
       Wire.endTransmission();
     }
   }
-
+  
   if (!downRouteEnded)
   {
     if (downWayRecentChanged)
@@ -209,7 +211,6 @@ void loop()
       Serial.print(downCityArrivedId);
       Serial.println(" has been arrived. War starts :) ");
 
-      /* I2C TRansmission */
       Serial.print("CITY ID BYTE --> ");
       Serial.println(Leds_down_route[downCityArrivedId]);
       Wire.beginTransmission(LED_DRIVER_ADDRESS);
@@ -257,25 +258,14 @@ void loop()
       Stepper_y_total_movement = 0;
       downWayRecentChanged = true;
       downRouteEnded = false;
+      downCityArrivedId = 0;
       ++y_number_of_loops_without_homing;
 
       //Turn off south route leds      
       Wire.beginTransmission(LED_DRIVER_ADDRESS);
-      Wire.write(ledsSouthCommandShutdown);
+      Wire.write(ledsResetSouthRouteCommand);
       Wire.endTransmission();
     }
-  }
-
-  if (xStepperLoopMovement != 0)
-  {
-    Serial.print("StepperX to move ");
-    Serial.println(xStepperLoopMovement);
-  }
-
-  if (yStepperLoopMovement != 0)
-  {
-    Serial.print("StepperY to move ");
-    Serial.println(yStepperLoopMovement);
   }
   
   moveStepper(&stepperX, xStepperLoopMovement, &stepperY, yStepperLoopMovement);
@@ -331,17 +321,11 @@ bool getNeededSteps (int totalMovement, int maxStepsPerRound, int arrayOfMovemen
   }
   
   stepsToExecute = xStepperLoopMovement;
-
-  if (totalMovement + stepsToExecute == sumOfStepsUpRoute)
+  
+  if (totalMovement + stepsToExecute == sumOfStepsUpRoute && totalMovement != sumOfStepsUpRoute)
   {
-    Serial.println("City arrived on getNeededSteps");
     cityArrived = true;
     cityId = i - 1;
-  }
-
-  if (ended)
-  {
-    Serial.println("---- Route has ended ----");
   }
 
   return ended;
