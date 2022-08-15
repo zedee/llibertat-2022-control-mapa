@@ -58,11 +58,11 @@ const int MOTOR_Y_DIRECTION_PIN = 23;
   
 const int LED_DRIVER_ADDRESS = 1;
 
-int Steps_up_route[] = {1000, 1000, 650};
+int Steps_up_route[] = {950, 1050, 650};
 //int Steps_up_route[] = {100, 100, 100};
 int Leds_up_route[] = {1, 2, 3};
 
-int Steps_down_route[] = {600, 1450, 650};
+int Steps_down_route[] = {550, 1450, 700};
 //int Steps_down_route[] = {100, 100, 100};
 int Leds_down_route[] = {4, 5, 6};
 
